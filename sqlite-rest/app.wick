@@ -23,7 +23,7 @@ import:
       kind: wick/component/manifest@v1
       ref: ./sqlite.wick
       with:
-        DB_URL: "{{ ctx.env.DB_URL }}" #Candle cloud always provides a DB_URL environment variable for the database. This is a sqlite3 url.
+        DB_URL: "{{ ctx.env.DB_URL }}" #Candle cloud automatically provides a DB_URL environment variable (secret) for the database. This is a sqlite3 url.
   - name: sqlite_driver
     component:
       kind: wick/component/manifest@v1
