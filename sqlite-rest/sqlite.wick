@@ -1,0 +1,49 @@
+kind: wick/component@v1
+name: sqlite
+metadata:
+  version: 0.0.1
+  description: New SQL wick component
+  licenses:
+  - Apache-2.0
+resources:
+- name: sqlite_db_url
+  resource:
+    kind: wick/resource/url@v1
+    url: "{{ ctx.root_config.DB_URL }}" #This is the DB_URL in the `with` section below. It is passed in from the app that imports this component. For security, only APPS have access to environment variables so that is why this is needed.
+component:
+  kind: wick/component/sql@v1
+  resource: sqlite_db_url
+  with:
+    - name: DB_URL #This is a value that must be provided by the calling app or component to initialize this component.
+      type: string
+  tls: false
+  operations:
+  - name: initialize
+    exec: | #exec runs a query that does not return a value
+      CREATE TABLE IF NOT EXISTS blogs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL
+      )
+  - name: create_blog
+    inputs:
+    - name: title
+      type: string
+    - name: content
+      type: string
+    query: | #a query returns a value
+      INSERT INTO blogs (title, content) VALUES ($1, $2) returning id
+    arguments:
+      - title
+      - content
+  - name: get_blogs
+    query: |
+      SELECT id, title FROM blogs
+  - name: get_blog
+    inputs:
+    - name: id
+      type: u32
+    query: | #a query returns a value
+      SELECT title, content FROM blogs WHERE id=$1
+    arguments:
+      - id

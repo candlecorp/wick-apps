@@ -1,0 +1,8 @@
+{
+  "yaml.schemas": {
+    "https://github.com/candlecorp/wick/releases/download/nightly/schema.json": [
+      "*.wick",
+      "file:///Users/fshaikh/Developer/candlecorp/wick-apps/sqlite-rest/app.wick"
+    ]
+  }
+}

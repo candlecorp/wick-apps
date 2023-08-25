@@ -1,0 +1,62 @@
+---
+kind: wick/app@v1
+name: sqlite-rest #Name of the app, style guide: lowercase kebab-case
+metadata:
+  documentation: Source Code and Readme available at https://github.com/candlecorp/wick-apps
+  description: Candle cloud app for customer deployments
+  version: 0.1.0 #this is used by the package functionality
+  vendors:
+    - "Candle Corporation"
+package:
+  registry:
+    host: registry.candle.dev #free wick application and component registry
+    namespace: wick-apps #"project" in the candle registry
+resources:
+  - name: httpserver #To make a http server, you must create a resource with address of the local machine and a port
+    resource:
+      kind: wick/resource/tcpport@v1
+      port: "8080" #this is the port that the http server will listen on. This must be a string as it can support liquid syntax e.g., {{ ctx.env.HTTP_PORT }}
+      address: 0.0.0.0
+import:
+  - name: sqlite_db
+    component:
+      kind: wick/component/manifest@v1
+      ref: ./sqlite.wick
+      with:
+        DB_URL: "{{ ctx.env.DB_URL }}" #Candle cloud always provides a DB_URL environment variable for the database. This is a sqlite3 url.
+  - name: sqlite_driver
+    component:
+      kind: wick/component/manifest@v1
+      ref: ./sqlite-driver.wick
+      provide:
+        dbclient: sqlite_db
+triggers:
+  - kind: wick/trigger/time@v1
+    schedule:
+      cron: "*/1 * * * * *" #one time on first second
+      repeat: 1 #only run once (when app first starts)
+    payload:
+      - name: name
+        value: "Initialize DB"
+    operation: sqlite_driver::initialize
+  - kind: wick/trigger/http@v1
+    resource: httpserver
+    routers:
+      - kind: wick/router/rest@v1
+        path: /blogs
+        routes:
+          - sub_path: "/create"
+            operation: sqlite_driver::create_blog
+            description: "Creates a blog post"
+            methods:
+              - Post
+          - sub_path: "/get/{id:u32}" #Passes the id as part of the input to the operation
+            operation: sqlite_driver::get_blog
+            description: "Gets a blog post"
+            methods:
+              - Get
+          - sub_path: "/"
+            operation: sqlite_driver::get_blogs
+            description: "Gets all blog posts"
+            methods:
+              - Get

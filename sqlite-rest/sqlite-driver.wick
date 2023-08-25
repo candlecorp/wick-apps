@@ -1,0 +1,115 @@
+kind: wick/component@v1
+name: sqlite-driver
+metadata:
+  version: 0.1.0
+  description: Composite component between app and db for standardizing inputs and outputs
+  licenses:
+    - Apache-2.0
+requires:
+  - name: dbclient
+    interface:
+      operations:
+        - name: initialize
+          outputs:
+            - name: output
+              type: object
+        - name: create_blog
+          inputs:
+            - name: title
+              type: string
+            - name: content
+              type: string
+          outputs:
+            - name: output
+              type: IdObject
+        - name: get_blogs
+          outputs:
+            - name: output
+              type: BlogTitlesObject #this will return a stream and wick will automatically convert it to an array if multiple items are found.
+        - name: get_blog
+          inputs:
+          - name: id
+            type: u32
+          outputs:
+            - name: output
+              type: BlogObject
+types:
+  - name: IdObject
+    kind: wick/type/struct@v1
+    fields:
+      - name: id
+        type: u32
+  - name: BlogTitlesObject
+    kind: wick/type/struct@v1
+    fields:
+      - name: id
+        type: u32
+      - name: title
+        type: string
+  - name: BlogObject
+    kind: wick/type/struct@v1
+    fields:
+      - name: title
+        type: string
+      - name: content
+        type: string
+component:
+  kind: wick/component/composite@v1
+  operations:
+    - name: initialize
+      uses:
+        - name: INITIALIZE
+          operation: dbclient::initialize
+        - name: SEND_DONE
+          operation: core::sender
+          with:
+            output:
+              message: "Initialized DB"
+      flow:
+        - <>.name -> drop
+        - INITIALIZE -> drop
+        - SEND_DONE.output.message -> <>.output
+    - name: create_blog
+      inputs:
+        - name: title
+          type: string
+        - name: content
+          type: string
+      outputs:
+        - name: blog
+          type: IdObject
+      uses:
+        - name: CREATE_BLOG
+          operation: dbclient::create_blog
+      flow:
+        - <>.input.title -> CREATE_BLOG.title
+        - <>.input.content -> CREATE_BLOG.content
+        - CREATE_BLOG.output.id -> <>.blog_id
+    - name: get_blogs
+      outputs:
+        - name: blogs
+          type: BlogTitlesObject
+      uses:
+        - name: GET_BLOGS
+          operation: dbclient::get_blogs
+        - name: COLLECT
+          operation: core::collect
+          with:
+            inputs: ['blog']
+      flow:
+        - <>.input -> drop
+        - GET_BLOGS.output -> COLLECT.blog
+        - COLLECT.output.blog -> <>.blogs
+    - name: get_blog
+      inputs:
+        - name: id
+          type: u32
+      outputs:
+        - name: blog
+          type: BlogObject
+      uses:
+        - name: GET_BLOG
+          operation: dbclient::get_blog
+      flow:
+        - <>.id -> GET_BLOG.id
+        - GET_BLOG.output -> <>.blog
