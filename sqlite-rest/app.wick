@@ -15,7 +15,7 @@ resources:
   - name: httpserver #To make a http server, you must create a resource with address of the local machine and a port
     resource:
       kind: wick/resource/tcpport@v1
-      port: "8080" #this is the port that the http server will listen on. This must be a string as it can support liquid syntax e.g., {{ ctx.env.HTTP_PORT }}
+      port: "{{ ctx.env.HTTP_PORT }}" #Candle cloud automatically provides a HTTP_PORT environment variable (secret) for the database. It is required to set this to the HTTP_PORT environment variable when deploying to candle cloud.
       address: 0.0.0.0
 import:
   - name: sqlite_db
