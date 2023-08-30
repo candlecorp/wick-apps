@@ -4,13 +4,15 @@ name: sqlite-rest #Name of the app, style guide: lowercase kebab-case
 metadata:
   documentation: Source Code and Readme available at https://github.com/candlecorp/wick-apps
   description: Candle cloud app for customer deployments
-  version: 0.1.0 #this is used by the package functionality
+  version: 0.2.0 #this is used by the package functionality
   vendors:
     - "Candle Corporation"
 package:
   registry:
     host: registry.candle.dev #free wick application and component registry
     namespace: wick-apps #"project" in the candle registry
+  files:
+    - ./blog-ui/dist #this is the directory that will be served by the http static router
 resources:
   - name: httpserver #To make a http server, you must create a resource with address of the local machine and a port
     resource:
