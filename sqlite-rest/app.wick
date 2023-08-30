@@ -3,8 +3,8 @@ kind: wick/app@v1
 name: sqlite-rest #Name of the app, style guide: lowercase kebab-case
 metadata:
   documentation: Source Code and Readme available at https://github.com/candlecorp/wick-apps
-  description: Candle cloud app for customer deployments
-  version: 0.2.0 #this is used by the package functionality
+  description: Sample appliation that uses sqlite3 and exposes a REST API
+  version: 0.3.0 #this is used by the package functionality
   vendors:
     - "Candle Corporation"
 package:
