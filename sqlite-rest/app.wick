@@ -17,6 +17,10 @@ resources:
       kind: wick/resource/tcpport@v1
       port: "{{ ctx.env.HTTP_PORT }}" #Candle cloud automatically provides a HTTP_PORT environment variable (secret) for the database. It is required to set this to the HTTP_PORT environment variable when deploying to candle cloud.
       address: 0.0.0.0
+  - name: DIR
+    resource:
+      kind: wick/resource/volume@v1
+      path: ./blog-ui/dist
 import:
   - name: sqlite_db
     component:
@@ -60,3 +64,7 @@ triggers:
             description: "Gets all blog posts"
             methods:
               - Get
+      - kind: wick/router/static@v1 #serve html files from the volume resource
+        path: /
+        volume: DIR
+        fallback: index.html
