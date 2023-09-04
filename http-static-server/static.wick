@@ -1,0 +1,33 @@
+---
+kind: wick/app@v1
+name: http-static #Name of the app, style guide: lowercase kebab-case
+metadata:
+  documentation: Source Code and Readme available at https://github.com/candlecorp/wick-apps
+  description: Sample appliation that uses sqlite3 and exposes a REST API
+  version: 0.1.0 #this is used by the package functionality
+  vendors:
+    - "Candle Corporation"
+package:
+  registry:
+    host: registry.candle.dev #free wick application and component registry
+    namespace: wick-apps #"project" in the candle registry
+  files:
+    - '{{__dirname}}/www' #All the files in this directory will be part of the package when published on the registry
+resources:
+  - name: httpserver #To make a http server, you must create a resource with address of the local machine and a port
+    resource:
+      kind: wick/resource/tcpport@v1
+      port: "{{ ctx.env.HTTP_PORT }}" #Candle cloud automatically provides a HTTP_PORT environment variable (secret) for the database. It is required to set this to the HTTP_PORT environment variable when deploying to candle cloud.
+      address: 0.0.0.0
+  - name: DIR
+    resource:
+      kind: wick/resource/volume@v1
+      path: '{{__dirname}}/www' #this is the directory that will be served by the http static router
+triggers:
+  - kind: wick/trigger/http@v1
+    resource: httpserver
+    routers:
+      - kind: wick/router/static@v1 #serve html files from the volume resource
+        path: /
+        volume: DIR
+        fallback: index.html #useful for single page applications so if the path is not found, the index.html is served instead.
